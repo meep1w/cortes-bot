@@ -71,6 +71,9 @@ async def terms(message: Message):
 
 @router.message(F.text.in_(["Открыть софт", "Open Software"]))
 async def open_software(message: Message):
+    if message.from_user.id == config.ADMIN_ID:
+        await message.answer("Нажми, чтобы открыть софт", reply_markup=miniapp())
+        return
     user_id = message.from_user.id
     lang = db.get_language(user_id)
     if utils.check_registration(user_id):
@@ -78,7 +81,7 @@ async def open_software(message: Message):
             "ru": "✅ Доступ открыт! [Запустить софт](https://example.com)",
             "en": "✅ Access granted! [Open Software](https://example.com)"
         }
-        await message.answer(text[lang], reply_markup=main_menu(lang))
+        await message.answer(text[lang], reply_markup=miniapp())
     else:
         text = {
             "ru": "🚫 Необходимо зарегистрироваться по реферальной ссылке.",

@@ -1,6 +1,6 @@
-from aiogram.types import KeyboardButton, InlineKeyboardButton
+from aiogram.types import KeyboardButton, InlineKeyboardButton, WebAppInfo
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
-
+from config import MINIAPP_URL
 
 def start_keyboard():
     builder = ReplyKeyboardBuilder()
@@ -21,6 +21,11 @@ def main_menu(lang="ru"):
     return builder.as_markup(resize_keyboard=True, one_time_keyboard=True)
 
 
+def miniapp():
+    return InlineKeyboardBuilder().row(
+        InlineKeyboardButton(text="Софт", web_app=WebAppInfo(url=MINIAPP_URL))
+    ).as_markup()
+
 def language_keyboard():
     builder = InlineKeyboardBuilder()
     builder.add(
@@ -33,6 +38,7 @@ def language_keyboard():
 def admin_panel():
     builder = ReplyKeyboardBuilder()
     builder.add(
+        KeyboardButton(text="Открыть софт"),
         KeyboardButton(text="Мои данные"),
         KeyboardButton(text="Статистика"),
         KeyboardButton(text="Рассылка")
