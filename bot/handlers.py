@@ -22,73 +22,84 @@ async def start_handler(message: Message):
         "ru": "👋 Добро пожаловать!\nНажмите кнопку ниже, чтобы продолжить.",
         "en": "👋 Welcome!\nPress the button below to continue."
     }
+    # await bot.send_photo(
+    #     photo=FSInputFile(path="Тут путь до фотки"),
+    #     caption=text[lang],
+    #     reply_markup=start_keyboard()
+    # ) <-- Пример добавления фотографии к посту
+
     await message.answer(text[lang], reply_markup=start_keyboard())
 
 
-@router.message(F.text == "Продолжить")
-async def continue_handler(message: Message):
-    lang = db.get_language(message.from_user.id)
+@router.callback_query(F.data == "Continue")
+async def continue_handler(event: CallbackQuery):
+    lang = db.get_language(event.from_user.id)
     text = {
         "ru": "Выберите действие:",
         "en": "Select an action:"
     }
-    await message.answer(text[lang], reply_markup=main_menu(lang))
+    await event.answer()
+    await event.message.edit_text(text[lang], reply_markup=main_menu(db.is_registered(event.from_user.id), lang))
 
 
-@router.message(F.text.in_(["Изменить язык", "Change Language"]))
-async def change_language(message: Message):
-    await message.answer("Выберите язык:", reply_markup=language_keyboard())
+@router.callback_query(F.data == "ChangeLang")
+async def change_language(event: CallbackQuery):
+    await event.answer()
+    await event.message.edit_text("Выберите язык:", reply_markup=language_keyboard())
 
 
 @router.callback_query(F.data.startswith("lang_"))
-async def set_language(call: CallbackQuery):
-    lang = call.data.split("_")[1]
-    db.update_language(call.from_user.id, lang)
-    await call.message.answer("Язык изменён.")
-    await call.message.answer("Выберите действие:", reply_markup=main_menu(lang))
-    await call.answer()
+async def set_language(event: CallbackQuery):
+    lang = event.data.split("_")[1]
+    db.update_language(event.from_user.id, lang)
+    await event.answer()
+    await event.message.edit_text(
+        text="Язык изменён\n\nВыберите действие:",
+        reply_markup=main_menu(db.is_registered(event.from_user.id), lang)
+    )
 
 
-@router.message(F.text.in_(["Инструкция", "Instructions"]))
-async def instructions(message: Message):
-    lang = db.get_language(message.from_user.id)
+@router.callback_query(F.data == "Instruction")
+async def instructions(event: CallbackQuery):
+    lang = db.get_language(event.from_user.id)
     text = {
         "ru": "📘 Инструкция:\n1. Зарегистрируйтесь по ссылке.\n2. Введите промокод.\n3. Запустите мини-апп.",
         "en": "📘 Instructions:\n1. Register via the link.\n2. Enter the promo code.\n3. Launch the mini app."
     }
-    await message.answer(text[lang])
+    await event.answer()
+    await event.message.answer(text=text[lang], reply_markup=main_menu(db.is_registered(event.from_user.id), lang))
 
 
-@router.message(F.text.in_(["Политика пользования", "Terms of Use"]))
-async def terms(message: Message):
-    lang = db.get_language(message.from_user.id)
+@router.callback_query(F.data == "UserPolicy")
+async def terms(event: CallbackQuery):
+    lang = db.get_language(event.from_user.id)
     text = {
         "ru": "⚖ Политика пользования:\nЭто шаблон политики.",
         "en": "⚖ Terms of Use:\nThis is a terms template."
     }
-    await message.answer(text[lang])
+    await event.answer()
+    await event.message.edit_text(text=text[lang], reply_markup=main_menu(db.is_registered(event.from_user.id), lang))
 
 
-@router.message(F.text.in_(["Открыть софт", "Open Software"]))
-async def open_software(message: Message):
-    if message.from_user.id == config.ADMIN_ID:
-        await message.answer("Нажми, чтобы открыть софт", reply_markup=miniapp())
-        return
-    user_id = message.from_user.id
+@router.callback_query(F.data == "OpenSoft")
+async def open_software(event: CallbackQuery):
+    user_id = event.from_user.id
     lang = db.get_language(user_id)
+    await event.answer()
     if utils.check_registration(user_id):
         text = {
             "ru": "✅ Доступ открыт! [Запустить софт](https://example.com)",
             "en": "✅ Access granted! [Open Software](https://example.com)"
         }
-        await message.answer(text[lang], reply_markup=miniapp())
+        await event.message.edit_text(text[lang], reply_markup=main_menu(db.is_registered(event.from_user.id), lang))
     else:
         text = {
             "ru": "🚫 Необходимо зарегистрироваться по реферальной ссылке.",
             "en": "🚫 You need to register via the referral link."
         }
         ref_link, promo = db.get_settings()
-        await message.answer(f"{text[lang]}\n\n🔗 {ref_link}\n\n🎁 Промокод: {promo}")
+        await event.message.edit_text(f"{text[lang]}\n\n🔗 {ref_link}\n\n🎁 Промокод: {promo}",
+                                      reply_markup=main_menu(db.is_registered(event.from_user.id), lang))
 
 
 @router.message(F.from_user.id == config.ADMIN_ID, F.text == "/admin")
@@ -96,17 +107,23 @@ async def admin_entry(message: Message):
     await message.answer("Панель админа:", reply_markup=admin_panel())
 
 
-@router.message(F.from_user.id == config.ADMIN_ID, F.text == "Мои данные")
-async def my_data(message: Message):
+@router.callback_query(F.from_user.id == config.ADMIN_ID, F.data == "MyAdminData")
+async def my_data(event: CallbackQuery):
     ref_link, promo = db.get_settings()
-    await message.answer(f"🔗 Реф.ссылка:\n{ref_link}\n\n🎁 Промокод:\n{promo}")
+    await event.answer()
+    await event.message.edit_text(
+        f"🔗 Реф.ссылка:\n{ref_link}\n\n🎁 Промокод:\n{promo}",
+        reply_markup=admin_panel()
+    )
 
 
-@router.message(F.from_user.id == config.ADMIN_ID, F.text == "Статистика")
-async def stats(message: Message):
+@router.callback_query(F.from_user.id == config.ADMIN_ID, F.data == "Statistic")
+async def stats(event: CallbackQuery):
     total, reg, dep, block = db.get_stats()
-    await message.answer(
-        f"👥 Всего пользователей: {total}\n✅ Зарегистрированы: {reg}\n💰 С депозитом: {dep}\n❌ Заблокировали бота: {block}"
+    await event.answer()
+    await event.message.edit_text(
+        f"👥 Всего пользователей: {total}\n✅ Зарегистрированы: {reg}\n💰 С депозитом: {dep}\n❌ Заблокировали бота: {block}",
+        reply_markup=admin_panel()
     )
 
 
@@ -114,9 +131,10 @@ class Mailing(StatesGroup):
     message = State()
 
 
-@router.message(F.from_user.id == config.ADMIN_ID, F.text == "Рассылка")
-async def broadcast_prompt(message: Message, state: FSMContext):
-    await message.answer("Пришли текст для рассылки.")
+@router.callback_query(F.from_user.id == config.ADMIN_ID, F.data == "Mailing")
+async def broadcast_prompt(event: CallbackQuery, state: FSMContext):
+    await event.answer()
+    await event.message.edit_text("Пришли текст для рассылки.")
     await state.set_state(Mailing.message)
 
 
@@ -134,10 +152,10 @@ async def broadcast_send(message: types.Message, state: FSMContext):
             except Exception as e:
                 print(e)
                 db.set_blocked(u[0])
-        await message.answer("Рассылка завершена.")
+        await message.answer("Рассылка завершена.", reply_markup=admin_panel())
     except Exception as e:
         print(e)
-        await message.answer(f"Ошибка при подключении к БД: {e}")
+        await message.answer(f"Ошибка при подключении к БД: {e}", reply_markup=admin_panel())
     await state.clear()
 
 
