@@ -4,6 +4,7 @@ from aiogram.fsm.state import StatesGroup, State
 
 from bot import db, config, utils
 from bot.config import POSTBACK_CHANNEL_ID, IMG_START, INSTRUCTION, CHANGE_LANG, OPEN_SOFT, MAIN_MENU
+from bot.filters import IsAdmin
 from handler_utils import *
 from keyboards import *
 
@@ -157,12 +158,12 @@ async def open_software(event: CallbackQuery):
     )
 
 
-@router.message(F.from_user.id == config.ADMIN_ID, F.text == "/admin")
+@router.message(F.text == "/admin", IsAdmin())
 async def admin_entry(message: Message):
     await message.answer("Панель админа:", reply_markup=admin_panel())
 
 
-@router.callback_query(F.from_user.id == config.ADMIN_ID, F.data == "MyAdminData")
+@router.callback_query(F.data == "MyAdminData", IsAdmin())
 async def my_data(event: CallbackQuery, state: FSMContext):
     await state.clear()
     ref_link, promo = db.get_settings()
@@ -174,7 +175,7 @@ async def my_data(event: CallbackQuery, state: FSMContext):
     )
 
 
-@router.callback_query(F.from_user.id == config.ADMIN_ID, F.data == "Statistic")
+@router.callback_query(F.data == "Statistic", IsAdmin())
 async def stats(event: CallbackQuery, state: FSMContext):
     await state.clear()
     total, reg, dep, block = db.get_stats()
@@ -190,7 +191,7 @@ class Mailing(StatesGroup):
     message = State()
 
 
-@router.callback_query(F.from_user.id == config.ADMIN_ID, F.data == "Mailing")
+@router.callback_query(F.data == "Mailing", IsAdmin())
 async def broadcast_prompt(event: CallbackQuery, state: FSMContext):
     await state.clear()
     await safe_answer(event)
@@ -198,7 +199,7 @@ async def broadcast_prompt(event: CallbackQuery, state: FSMContext):
     await state.set_state(Mailing.message)
 
 
-@router.message(F.from_user.id == config.ADMIN_ID, Mailing.message)
+@router.message(Mailing.message, IsAdmin())
 async def broadcast_send(message: types.Message, state: FSMContext):
     await state.clear()
     try:
@@ -227,14 +228,14 @@ class DataToUpdate(StatesGroup):
     update = State()
 
 
-@router.callback_query(F.data == "UpdateAdminData")
+@router.callback_query(F.data == "UpdateAdminData", IsAdmin())
 async def start_update_data(event: CallbackQuery, state: FSMContext):
     await state.clear()
     await safe_answer(event)
     await safe_edit_text(event, text="Выбери данные для обновления", reply_markup=data_to_update())
 
 
-@router.callback_query(F.data.startswith("UpdateTo:"))
+@router.callback_query(F.data.startswith("UpdateTo:"), IsAdmin())
 async def select_option_update(event: CallbackQuery, state: FSMContext):
     await safe_answer(event)
     param = event.data.split(":")[1]
@@ -248,7 +249,7 @@ async def select_option_update(event: CallbackQuery, state: FSMContext):
     await state.set_state(DataToUpdate.update)
 
 
-@router.message(DataToUpdate.update)
+@router.message(DataToUpdate.update, IsAdmin())
 async def update_admin(event: Message, state: FSMContext):
     data = await state.get_data()
     await state.clear()
@@ -273,7 +274,7 @@ async def update_admin(event: Message, state: FSMContext):
         )
 
 
-@router.channel_post(F.chat.id == int(POSTBACK_CHANNEL_ID))
+@router.channel_post(F.chat.id == int(POSTBACK_CHANNEL_ID), IsAdmin())
 async def postback_handler(event: Message):
     try:
         text = event.text

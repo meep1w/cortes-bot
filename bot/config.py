@@ -21,4 +21,12 @@ OPEN_SOFT=os.getenv('OPEN_SOFT')
 CHANGE_LANG=os.getenv('CHANGE_LANG')
 INSTRUCTION=os.getenv('INSTRUCTION')
 MAIN_MENU=os.getenv('MAIN_MENU')
+
+WEBHOOK_DOMAIN = YAML['telegram']['webhook']['domain']
+WEBHOOK_PATH = YAML['telegram']['webhook']['path']
+WEBAPP_PORT=YAML['telegram']['webapp']['port']
+WEBAPP_HOST=YAML['telegram']['webapp']['host']
+MINIAPP_LINK = YAML['telegram']['miniapp']['link']
+WEBHOOK_URL = f"{WEBHOOK_DOMAIN}{WEBHOOK_PATH}"
+
 DB_URL = f"sqlite:///{YAML['database']}"

@@ -3,3 +3,13 @@ telegram:
   bot_token:
   postback_channel:
   miniapp_url:
+  link:
+
+  webhook:
+    domain:
+    path:
+    webapp:
+      host:
+      port:
+
+database:
