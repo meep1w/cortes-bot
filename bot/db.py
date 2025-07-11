@@ -1,6 +1,7 @@
 import sqlite3
+from config import DB_URL
 
-conn = sqlite3.connect("../bot_database.db")
+conn = sqlite3.connect(DB_URL)
 cursor = conn.cursor()
 
 # Таблица пользователей

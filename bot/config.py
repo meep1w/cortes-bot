@@ -21,3 +21,4 @@ OPEN_SOFT=os.getenv('OPEN_SOFT')
 CHANGE_LANG=os.getenv('CHANGE_LANG')
 INSTRUCTION=os.getenv('INSTRUCTION')
 MAIN_MENU=os.getenv('MAIN_MENU')
+DB_URL = f"sqlite:///{YAML['database']}"
