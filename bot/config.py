@@ -12,8 +12,14 @@ BOT_TOKEN = YAML['telegram']['bot_token']
 POSTBACK_CHANNEL_ID = YAML['telegram']['postback_channel']
 ADMIN_ID = YAML['telegram']['admin_id']
 MINIAPP_URL = YAML['telegram']['miniapp_url']
-
+CHANNEL_URL = YAML['telegram']['link']
 reflink = "https://1wcjlr.com/casino/list?open=register&p=rvcf"
 promo_code = "C0RTES"
 
 LANGUAGES = ["ru", "en"]
+
+IMG_START=os.getenv('IMG_START')
+OPEN_SOFT=os.getenv('OPEN_SOFT')
+CHANGE_LANG=os.getenv('CHANGE_LANG')
+INSTRUCTION=os.getenv('INSTRUCTION')
+MAIN_MENU=os.getenv('MAIN_MENU')

@@ -105,3 +105,11 @@ def update_settings(ref_link, promo_code):
 def get_settings():
     cursor.execute("SELECT ref_link, promo_code FROM settings WHERE id = 1")
     return cursor.fetchone()
+
+def update(param, value):
+    try:
+        cursor.execute(f"update settings set {param} = ? where id = 1", (value, ))
+        conn.commit()
+        return True
+    except Exception as e:
+        return False
