@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardButton, WebAppInfo
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from bot.config import CHANNEL_URL
+from config import CHANNEL_URL
 from config import MINIAPP_URL
 
 

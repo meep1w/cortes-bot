@@ -2,9 +2,9 @@ from aiogram import Router, types, F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 
-from bot import db, config, utils
-from bot.config import POSTBACK_CHANNEL_ID, IMG_START, INSTRUCTION, CHANGE_LANG, OPEN_SOFT, MAIN_MENU
-from bot.filters import IsAdmin
+import db, config, utils
+from config import POSTBACK_CHANNEL_ID, IMG_START, INSTRUCTION, CHANGE_LANG, OPEN_SOFT, MAIN_MENU
+from filters import IsAdmin
 from handler_utils import *
 from keyboards import *
 

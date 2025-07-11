@@ -1,4 +1,4 @@
-from bot import db
+import db
 
 def check_registration(user_id):
     """
